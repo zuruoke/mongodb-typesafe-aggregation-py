@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Lint, Type-check & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv with Python 3.12
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Check formatting
+        run: uv run ruff format --check
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Type-check
+        run: uv run mypy
+
+      - name: Run tests
+        run: uv run pytest
+
+  publish:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+
+      - name: Check tag matches package version
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' src/mongodb_typesafe_aggregation/__init__.py)
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match __version__ ${version}" >&2
+            exit 1
+          fi
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1

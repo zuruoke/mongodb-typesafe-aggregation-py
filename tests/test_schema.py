@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import sys
 from typing import Any, TypedDict
 
 import pytest
@@ -68,6 +69,17 @@ class TestFieldsOf:
 
     def test_pydantic_model_uses_aliases(self) -> None:
         assert fields_of(Review) == frozenset({"_id", "rating", "text"})
+
+    @pytest.mark.skipif(sys.version_info >= (3, 14), reason="pydantic.v1 needs Python < 3.14")
+    def test_pydantic_v1_model_uses_aliases(self) -> None:
+        from pydantic.v1 import BaseModel as BaseModelV1
+        from pydantic.v1 import Field as FieldV1
+
+        class LegacyReview(BaseModelV1):
+            id: str = FieldV1(alias="_id")
+            rating: int
+
+        assert fields_of(LegacyReview) == frozenset({"_id", "rating"})
 
     def test_annotated_class_includes_inherited_fields(self) -> None:
         assert fields_of(Ebook) == frozenset({"_id", "title", "year", "size_mb"})
