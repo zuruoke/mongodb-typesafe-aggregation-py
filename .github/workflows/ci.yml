@@ -79,6 +79,13 @@ jobs:
           echo "MongoDB did not become ready" >&2
           docker ps -a --filter name=mongodb >&2
           docker logs mongodb >&2
+          # Also as an annotation, which shows on the PR without opening the job log.
+          details="$(docker ps -a --filter name=mongodb --format '{{.Status}}')
+          $(docker logs mongodb 2>&1 | tail -n 25)"
+          details="${details//'%'/'%25'}"
+          details="${details//$'\r'/'%0D'}"
+          details="${details//$'\n'/'%0A'}"
+          echo "::error title=MongoDB ${{ matrix.mongodb-version }} did not start::${details}"
           exit 1
 
       - name: Setup uv
