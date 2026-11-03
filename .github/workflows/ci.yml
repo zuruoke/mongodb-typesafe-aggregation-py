@@ -53,7 +53,9 @@ jobs:
 
   integration:
     name: Integration (MongoDB ${{ matrix.mongodb-version }})
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest: MongoDB 8.0 refuses to start on Linux kernel 6.19+, which Ubuntu 26
+    # runners ship (https://jira.mongodb.org/browse/SERVER-121912).
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
