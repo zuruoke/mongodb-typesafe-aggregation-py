@@ -56,23 +56,30 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         mongodb-version: ['6.0', '7.0', '8.0']
-
-    services:
-      mongodb:
-        image: mongo:${{ matrix.mongodb-version }}
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Started here rather than as a service container so that, if it fails to come up, its
+      # own logs end up in the job output.
+      - name: Start MongoDB ${{ matrix.mongodb-version }}
+        run: |
+          docker run -d --name mongodb -p 27017:27017 mongo:${{ matrix.mongodb-version }}
+          for attempt in $(seq 1 30); do
+            if docker exec mongodb mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' >/dev/null 2>&1; then
+              echo "MongoDB is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "MongoDB did not become ready" >&2
+          docker ps -a --filter name=mongodb >&2
+          docker logs mongodb >&2
+          exit 1
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
