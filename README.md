@@ -10,6 +10,10 @@ A type-safe, fluent builder for MongoDB aggregation pipelines. It is the Python 
 TypeScript. Field names are checked against your document class, so a typo fails when the
 pipeline is built instead of silently matching nothing.
 
+> **Using TypeScript or JavaScript?** The original builder is
+> [`mongodb-typesafe-aggregation` on npm](https://www.npmjs.com/package/mongodb-typesafe-aggregation)
+> ([source](https://github.com/zuruoke/mongodb-typesafe-aggregation)).
+
 ## Installation
 
 ```bash
