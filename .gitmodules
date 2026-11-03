@@ -1,0 +1,3 @@
+[submodule "mongodb-pipeline-demo-py"]
+	path = mongodb-pipeline-demo-py
+	url = https://github.com/zuruoke/mongodb-pipeline-demo-py.git
