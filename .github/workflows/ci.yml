@@ -50,3 +50,56 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
+
+  integration:
+    name: Integration (MongoDB ${{ matrix.mongodb-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add '8.0' back once it starts on Linux kernel 6.19+, which every GitHub runner now
+        # has: https://jira.mongodb.org/browse/SERVER-121912
+        mongodb-version: ['6.0', '7.0']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Started here rather than as a service container so that, if it fails to come up, its
+      # own logs end up in the job output.
+      - name: Start MongoDB ${{ matrix.mongodb-version }}
+        run: |
+          docker run -d --name mongodb -p 27017:27017 mongo:${{ matrix.mongodb-version }}
+          for attempt in $(seq 1 30); do
+            if docker exec mongodb mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' >/dev/null 2>&1; then
+              echo "MongoDB is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "MongoDB did not become ready" >&2
+          docker ps -a --filter name=mongodb >&2
+          docker logs mongodb >&2
+          # Also as an annotation, which shows on the PR without opening the job log.
+          details="$(docker ps -a --filter name=mongodb --format '{{.Status}}')
+          $(docker logs mongodb 2>&1 | tail -n 25)"
+          details="${details//'%'/'%25'}"
+          details="${details//$'\r'/'%0D'}"
+          details="${details//$'\n'/'%0A'}"
+          echo "::error title=MongoDB ${{ matrix.mongodb-version }} did not start::${details}"
+          exit 1
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run integration tests
+        run: uv run pytest -m integration
+        env:
+          MONGODB_URI: mongodb://localhost:27017
