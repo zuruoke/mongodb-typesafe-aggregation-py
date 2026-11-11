@@ -3,6 +3,8 @@
 [![PyPI version](https://img.shields.io/pypi/v/mongodb-typesafe-aggregation.svg)](https://pypi.org/project/mongodb-typesafe-aggregation/)
 [![CI](https://github.com/zuruoke/mongodb-typesafe-aggregation-py/actions/workflows/ci.yml/badge.svg)](https://github.com/zuruoke/mongodb-typesafe-aggregation-py/actions/workflows/ci.yml)
 [![Python versions](https://img.shields.io/pypi/pyversions/mongodb-typesafe-aggregation.svg)](https://pypi.org/project/mongodb-typesafe-aggregation/)
+[![Downloads](https://static.pepy.tech/badge/mongodb-typesafe-aggregation)](https://pepy.tech/project/mongodb-typesafe-aggregation)
+[![Monthly downloads](https://img.shields.io/pypi/dm/mongodb-typesafe-aggregation.svg)](https://pypistats.org/packages/mongodb-typesafe-aggregation)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A type-safe, fluent builder for MongoDB aggregation pipelines. It is the Python version of
